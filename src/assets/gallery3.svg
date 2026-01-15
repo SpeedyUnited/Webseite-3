@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#101010"/>
+      <stop offset="100%" stop-color="#242424"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff4081"/>
+      <stop offset="100%" stop-color="#ff7043"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g3)"/>
+  <rect x="70" y="130" width="1060" height="540" rx="28" fill="#141414" stroke="#2f2f2f"/>
+  <rect x="120" y="190" width="960" height="8" fill="url(#edge)"/>
+  <rect x="120" y="240" width="420" height="260" rx="18" fill="#1f1f1f"/>
+  <rect x="600" y="240" width="480" height="40" rx="12" fill="#1f1f1f"/>
+  <rect x="600" y="300" width="360" height="18" rx="8" fill="#2a2a2a"/>
+  <rect x="600" y="340" width="340" height="18" rx="8" fill="#2a2a2a"/>
+  <rect x="600" y="380" width="320" height="18" rx="8" fill="#2a2a2a"/>
+  <rect x="600" y="440" width="220" height="32" rx="16" fill="#ff7043"/>
+</svg>

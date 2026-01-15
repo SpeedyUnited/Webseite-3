@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  web_holzwerk_meister:
+    image: ghcr.io/speedyunited/webseite-2:latest
+    depends_on:
+      - php
+    networks:
+      - web
+    restart: unless-stopped
+
+  php:
+    image: ghcr.io/speedyunited/webseite-2-php:latest
+    networks:
+      - web
+    restart: unless-stopped
+
+networks:
+  web:
+    external: true
