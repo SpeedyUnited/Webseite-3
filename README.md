@@ -1,6 +1,6 @@
 # Webseite-3
 
-Aktuelle Version: 0.0.2
+Aktuelle Version: 0.0.3
 
 ## Lokales Starten (Nginx + PHP-FPM)
 
@@ -25,7 +25,7 @@ Standard-Workflow für Updates:
 1) Code ändern
 2) Commit & Push
 3) Image bauen + pushen mit:
-`IMAGE=ghcr.io/speedyunited/webseite-3 TAG=0.0.2 ./scripts/publish.sh`
+`IMAGE=ghcr.io/speedyunited/webseite-3 TAG=0.0.3 ./scripts/publish.sh`
 
 Für andere Projekte einfach `IMAGE` und `TAG` anpassen.
 
