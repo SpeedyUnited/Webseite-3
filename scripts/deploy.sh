@@ -1,17 +1,30 @@
 #!/bin/bash
 set -e
-# Deployment-Script – Single-Image Container (docker run)
-# PORT und TAG über Env konfigurierbar.
+###############################################################################
+# deploy.sh – Single-Image Container auf dem Server starten
+#
+# Konfiguration über Env-Variablen oder .env-Datei im Projektroot.
+#   HOST_PORT  – Host-Port  (default: 8081)
+#   TAG        – Image-Tag  (default: latest)
+#   IMAGE      – Image-Name (default: aus .env oder ghcr.io/user/repo)
+#   NAME       – Containername (default: Basename von IMAGE)
+###############################################################################
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# .env laden (falls vorhanden)
+[ -f "$PROJECT_DIR/.env" ] && set -a && . "$PROJECT_DIR/.env" && set +a
 
 HOST_PORT=${HOST_PORT:-8081}
-TAG=${TAG:-v0.1.0}
-IMAGE=${IMAGE:-ghcr.io/speedyunited/webseite-3}
-NAME=${NAME:-webseite-3}
+TAG=${TAG:-latest}
+IMAGE=${IMAGE:-ghcr.io/speedyunited/grundseite}
+NAME=${NAME:-$(basename "$IMAGE")}
 
-# Alten Container stoppen/entfernen, falls vorhanden
+# Alten Container stoppen/entfernen
 docker rm -f "$NAME" 2>/dev/null || true
 
-echo "Starte $NAME auf 127.0.0.1:${HOST_PORT} (Tag: ${TAG})..."
+echo "▶ Starte $NAME auf 127.0.0.1:${HOST_PORT} (Tag: ${TAG}) …"
 
 docker run -d \
   --name "$NAME" \
@@ -31,4 +44,4 @@ docker run -d \
   --log-opt max-file=3 \
   "$IMAGE:$TAG"
 
-echo "Website erreichbar unter 127.0.0.1:${HOST_PORT} (Host-Caddy routet darauf)"
+echo "✅  Läuft auf 127.0.0.1:${HOST_PORT} (Caddy routet darauf)"

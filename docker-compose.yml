@@ -1,3 +1,21 @@
-# NICHT MEHR BENÖTIGT – Dieses Projekt nutzt docker run, kein Compose.
-# Siehe scripts/deploy.sh oder README.md.
-# Diese Datei kann gelöscht werden: rm docker-compose.yml
+###############################################################################
+# docker-compose.yml – NUR für lokale Entwicklung
+#
+# Start:  docker compose up --build       (oder ./scripts/dev.sh)
+# URL:    http://localhost:8080
+# Stop:   docker compose down
+#
+# Produktion nutzt „docker run" via scripts/deploy.sh – kein Compose nötig.
+###############################################################################
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"                                      # Browser: localhost:8080
+    environment:
+      - APP_ENV=development                            # OPcache-Revalidierung an
+    volumes:
+      - ./src:/usr/share/nginx/html                    # Live-Sync der Dateien
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped

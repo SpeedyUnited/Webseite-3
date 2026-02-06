@@ -13,5 +13,6 @@
 			<small>© 2026 Beispielseite</small>
 		</div>
 	</footer>
+	<script src="<?php echo asset_url('js/script.js'); ?>"></script>
 </body>
 </html>

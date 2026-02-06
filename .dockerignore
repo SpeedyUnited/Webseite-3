@@ -1,5 +1,22 @@
-node_modules
-*.log
+# Git & IDE
 .git
 .github
 .vscode
+.gitignore
+
+# Entwicklung / CI – gehört nicht ins Image
+docker-compose.yml
+Dockerfile
+README.md
+LICENSE
+scripts/
+tests/
+config/wireguard/
+config/Caddyfile
+
+# Logs & Deps
+node_modules
+*.log
+*.md
+.env
+.env.*

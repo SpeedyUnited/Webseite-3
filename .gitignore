@@ -1,0 +1,11 @@
+# Environment (enthält ggf. Secrets)
+.env
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs
+*.log

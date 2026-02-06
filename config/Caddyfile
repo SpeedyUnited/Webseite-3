@@ -2,15 +2,21 @@
     email admin@example.com
 }
 
-# Host-Caddy routet auf die lokal gebundenen Container-Ports.
+# ─────────────────────────────────────────────────────────────────────────────
+# Host-Caddy: Reverse-Proxy auf lokal gebundene Container-Ports.
 # Jeder Container exponiert nur 127.0.0.1:<PORT>:80.
-# Domains und Ports bitte pro Projekt anpassen.
+#
+# Anleitung:
+#   1. Domain und Port an dein Projekt anpassen
+#   2. Caddy kümmert sich automatisch um Let's-Encrypt-Zertifikate
+# ─────────────────────────────────────────────────────────────────────────────
 
-holzwerk-meister.example.com {
+# Projekt 1 (dieses Projekt)
+meine-webseite.example.com {
     reverse_proxy 127.0.0.1:8081
 }
 
-# Weitere Projekte:
-# kunde2.example.com {
+# Projekt 2
+# andere-webseite.example.com {
 #     reverse_proxy 127.0.0.1:8082
 # }

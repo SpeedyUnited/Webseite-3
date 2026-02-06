@@ -1,20 +1,37 @@
-#!/bin/sh
+#!/bin/bash
 set -e
+###############################################################################
+# publish.sh – Image bauen & in die Registry pushen
+#
+# Konfiguration über Env-Variablen oder .env im Projektroot.
+#   IMAGE  – vollständiger Image-Name  (default: aus .env)
+#   TAG    – Tag                        (default: latest)
+#
+# Beispiel:
+#   IMAGE=ghcr.io/user/mein-projekt TAG=v1.0.0 ./scripts/publish.sh
+###############################################################################
 
-# Usage:
-#   IMAGE=ghcr.io/<user>/<repo> TAG=latest ./scripts/publish.sh
-# Optional:
-#   PHP_IMAGE=ghcr.io/<user>/<repo>-php (auto if Dockerfile.php exists)
-# Defaults:
-IMAGE=${IMAGE:-"ghcr.io/speedyunited/webseite-3"}
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_DIR"
+
+# .env laden (falls vorhanden)
+[ -f ".env" ] && set -a && . ".env" && set +a
+
+IMAGE=${IMAGE:-"ghcr.io/speedyunited/grundseite"}
 TAG=${TAG:-"latest"}
+FULL="$IMAGE:$TAG"
 
-FULL_IMAGE="$IMAGE:$TAG"
+echo "▶ Baue $FULL …"
+docker build -t "$FULL" .
 
-echo "Building $FULL_IMAGE"
-docker build -t "$FULL_IMAGE" .
+# Optional: auch :latest taggen wenn ein Version-Tag gesetzt ist
+if [ "$TAG" != "latest" ]; then
+  docker tag "$FULL" "$IMAGE:latest"
+fi
 
-echo "Pushing $FULL_IMAGE"
-docker push "$FULL_IMAGE"
+echo "▶ Push $FULL …"
+docker push "$FULL"
+[ "$TAG" != "latest" ] && docker push "$IMAGE:latest"
 
-echo "Done."
+echo "✅  $FULL erfolgreich gepusht."

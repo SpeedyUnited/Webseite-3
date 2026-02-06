@@ -3,8 +3,8 @@ $pageTitle = 'Start';
 include 'header.php';
 ?>
 
-<h1>Start</h1>
-<p>Sie befinden sich auf der Seite: Start.</p>
-<p>Dies ist ein einfacher Beispieltext zur Orientierung. Hier können später individuelle Inhalte ergänzt werden.</p>
+<h1>Willkommen auf der Startseite!</h1>
+<p>Diese Änderung wurde live ohne Docker-Rebuild sichtbar.</p>
+<p>Einfach Datei speichern und Browser refreshen – fertig.</p>
 
 <?php include 'footer.php'; ?>

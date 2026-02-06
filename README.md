@@ -1,68 +1,122 @@
-# Webseite-3
+# Grundseite-Standard-Docker
 
-Aktuelle Version: v0.1.0
+Docker-Vorlage für PHP-Webseiten als **Single-Image** (Nginx + PHP-FPM in einem Container).  
+Repo klonen → Dateien in `src/` anpassen → Image pushen → auf dem Server mit einem Befehl starten.
 
-## Konzept
+---
 
-Ein **einzelnes Docker-Image** (Nginx + PHP-FPM im selben Container).
-Kein Compose, kein separater PHP-Container – nur `docker run`.
+## Schnellstart
 
-## Starten
+### 1. Vorlage nutzen
 
 ```bash
-# Lokal (Port 8080)
+# Repo als Vorlage klonen (oder GitHub "Use this template")
+git clone https://github.com/SpeedyUnited/Grundseite-Standard-Docker.git mein-projekt
+cd mein-projekt
+```
+
+### 2. Lokal entwickeln
+
+```bash
+./scripts/dev.sh
+# → http://localhost:8080
+# Dateien in src/ bearbeiten → Browser refreshen → fertig
+```
+
+### 3. Image bauen & pushen
+
+```bash
+# Manuell
+IMAGE=ghcr.io/dein-user/mein-projekt TAG=v1.0.0 ./scripts/publish.sh
+
+# Oder automatisch: Git-Tag pushen → GitHub Actions baut & pusht
+git tag v1.0.0 && git push --tags
+```
+
+### 4. Auf dem Server deployen
+
+```bash
+# Nur diesen einen Befehl braucht der Server:
 docker run -d \
-  --name webseite-3 \
+  --name mein-projekt \
   --restart unless-stopped \
-  -p 127.0.0.1:8080:80 \
+  -p 127.0.0.1:8081:80 \
   --cpus 0.50 --memory 256m \
   --log-opt max-size=10m --log-opt max-file=3 \
-  ghcr.io/speedyunited/webseite-3:v0.1.0
-# Aufruf: http://127.0.0.1:8080
+  ghcr.io/dein-user/mein-projekt:v1.0.0
 
-# Produktion via Deploy-Script (Port 8081)
-./scripts/deploy.sh
-
-# Oder mit angepasstem Port/Tag:
-HOST_PORT=8082 TAG=v0.2.0 ./scripts/deploy.sh
+# Oder mit dem Deploy-Script:
+IMAGE=ghcr.io/dein-user/mein-projekt TAG=v1.0.0 ./scripts/deploy.sh
 ```
 
-Der Container ist **nur auf 127.0.0.1** erreichbar, niemals auf 0.0.0.0.
+**Das war's.** Ein Image, ein Container, alles läuft.
 
-## Image bauen & pushen
+---
 
-```bash
-IMAGE=ghcr.io/speedyunited/webseite-3 TAG=v0.1.0 ./scripts/publish.sh
+## Projektstruktur
+
+```
+├── Dockerfile              # Single-Image: Nginx + PHP-FPM (Alpine)
+├── docker-compose.yml      # Nur für lokale Entwicklung (Live-Sync)
+├── .github/workflows/      # CI/CD: Automatisch bauen & pushen
+├── config/
+│   ├── nginx.conf          # Nginx-Konfiguration (Gzip, Caching, Security)
+│   ├── entrypoint.sh       # Startet PHP-FPM + Nginx
+│   ├── Caddyfile           # Beispiel: Host-Caddy Reverse-Proxy
+│   └── wireguard/          # Beispiel: WireGuard-Tunnel-Configs
+├── scripts/
+│   ├── dev.sh              # Lokaler Dev-Server starten
+│   ├── publish.sh          # Image bauen & in Registry pushen
+│   ├── deploy.sh           # Container auf Server starten
+│   └── setup-wireguard.sh  # WireGuard-Tunnel aktivieren
+├── src/                    # ← DEINE WEBSEITE
+│   ├── index.php
+│   ├── header.php / footer.php
+│   ├── css/ js/ assets/
+│   └── ...
+└── tests/                  # Tests (optional)
 ```
 
-Für andere Projekte einfach `IMAGE` und `TAG` anpassen.
+## Für ein neues Projekt anpassen
 
-## Routing-Konzept (WireGuard + Caddy)
+1. **`src/`** – Eigene PHP/HTML/CSS/JS-Dateien einfügen
+2. **`.env`** erstellen (optional):
+   ```env
+   IMAGE=ghcr.io/dein-user/mein-projekt
+   TAG=latest
+   HOST_PORT=8081
+   NAME=mein-projekt
+   ```
+3. **`config/Caddyfile`** – Domain & Port anpassen
+4. Fertig – Image bauen & deployen
 
-Kein Container ist öffentlich erreichbar. Alles läuft über den Host.
+## Features im Image
 
-### Architektur
-- **WireGuard** läuft auf dem Host (kein Docker-Service)
-- **Caddy** läuft auf dem Host (kein Docker-Service)
-- **Website-Container** binden nur auf `127.0.0.1:<PORT>:80`
+- **Nginx + PHP 8.3 FPM** in einem Alpine-Container (~30 MB)
+- **OPcache** aktiviert für schnelle PHP-Ausführung
+- **Gzip-Komprimierung** für CSS/JS/SVG/JSON
+- **Security-Header** (X-Content-Type-Options, X-Frame-Options, XSS-Protection)
+- **Static-Asset-Caching** (30 Tage für Bilder/CSS/JS)
+- **Healthcheck** eingebaut
+- **Graceful Shutdown** (PHP-FPM wird sauber beendet)
+- **Ressourcenlimits** (CPU/RAM) im Deploy-Script
+- **Log-Rotation** (max 3 × 10 MB)
 
-### Ablauf
-1) Client → WireGuard → Host
-2) Host-Caddy lauscht auf 80/443, terminiert TLS
-3) Caddy routet auf `127.0.0.1:<PORT>` des jeweiligen Containers
+## Routing-Konzept (Produktion)
 
-### Caddy-Routing (Host-Caddyfile)
 ```
-holzwerk-meister.example.com {
-    reverse_proxy 127.0.0.1:8081
-}
+Client → WireGuard → Host → Caddy (TLS) → 127.0.0.1:PORT → Container
 ```
 
-### Verbindliche Docker-Regeln
-- Nur `docker run`, kein Compose für Single-Image-Projekte
-- Ports nur mit `127.0.0.1` – niemals `0.0.0.0`
+- Container binden **nur auf 127.0.0.1** – nie öffentlich
+- **Caddy** auf dem Host terminiert TLS und routet auf den Container-Port
+- **WireGuard** verbindet lokalen Rechner mit dem Server
+
+## Docker-Regeln
+
+- Nur `docker run`, kein Compose in Produktion
+- Ports nur `127.0.0.1:PORT:80` – nie `0.0.0.0`
 - Kein `--network host`, kein `--privileged`
-- Ressourcenlimits (`--cpus`, `--memory`) und Log-Rotation
-- Healthcheck für den Web-Service
-- `--restart unless-stopped`
-- Secrets nur über Env-Variablen / `.env`, nie hardcoded
+- Immer `--restart unless-stopped`
+- Immer `--cpus` + `--memory` Limits
+- Immer Log-Rotation
