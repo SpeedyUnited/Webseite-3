@@ -2,56 +2,67 @@
 
 Aktuelle Version: v0.1.0
 
-## Lokales Starten (Nginx + PHP-FPM)
+## Konzept
 
-Für lokale Tests bitte immer beide Container starten, da Nginx den Upstream `php` erwartet:
+Ein **einzelnes Docker-Image** (Nginx + PHP-FPM im selben Container).
+Kein Compose, kein separater PHP-Container – nur `docker run`.
 
-1) `docker compose up -d`
-2) Aufruf: http://localhost:8080
+## Starten
 
-Hinweis: Das Root-Compose erstellt ein internes Netzwerk automatisch.
+```bash
+# Lokal (Port 8080)
+docker run -d \
+  --name webseite-3 \
+  --restart unless-stopped \
+  -p 127.0.0.1:8080:80 \
+  --cpus 0.50 --memory 256m \
+  --log-opt max-size=10m --log-opt max-file=3 \
+  ghcr.io/speedyunited/webseite-3:v0.1.0
+# Aufruf: http://127.0.0.1:8080
 
-## Prod-Stack (Caddy + externes Docker-Netzwerk)
+# Produktion via Deploy-Script (Port 8081)
+./scripts/deploy.sh
 
-Voraussetzung: Externes Netzwerk einmalig anlegen (z. B. `docker network create web`).
-Dann den Website-Stack starten:
+# Oder mit angepasstem Port/Tag:
+HOST_PORT=8082 TAG=v0.2.0 ./scripts/deploy.sh
+```
 
-1) `docker compose -f config/docker-compose.yml up -d`
-2) Caddy läuft separat und routet auf den Service-Namen im Netzwerk.
+Der Container ist **nur auf 127.0.0.1** erreichbar, niemals auf 0.0.0.0.
 
-## Updates & Image-Push (universell)
+## Image bauen & pushen
 
-Standard-Workflow für Updates:
-1) Code ändern
-2) Commit & Push
-3) Image bauen + pushen mit:
-`IMAGE=ghcr.io/speedyunited/webseite-3 TAG=v0.1.0 ./scripts/publish.sh`
+```bash
+IMAGE=ghcr.io/speedyunited/webseite-3 TAG=v0.1.0 ./scripts/publish.sh
+```
 
 Für andere Projekte einfach `IMAGE` und `TAG` anpassen.
 
-Wenn eine `Dockerfile.php` existiert, wird zusätzlich automatisch das PHP-Image
-`<IMAGE>-php:<TAG>` gebaut und gepusht.
-
 ## Routing-Konzept (WireGuard + Caddy)
 
-Ziel: Jeder Website-Container läuft **intern** im Docker-Netzwerk, extern erreichbar ist nur der Host.
-WireGuard endet auf dem Debian-Host, Caddy nimmt HTTPS an und leitet an den richtigen Container weiter.
+Kein Container ist öffentlich erreichbar. Alles läuft über den Host.
+
+### Architektur
+- **WireGuard** läuft auf dem Host (kein Docker-Service)
+- **Caddy** läuft auf dem Host (kein Docker-Service)
+- **Website-Container** binden nur auf `127.0.0.1:<PORT>:80`
 
 ### Ablauf
-1) Client verbindet sich per WireGuard zum Host
-2) Caddy lauscht auf 80/443 und terminiert TLS
-3) Caddy routet anhand der Domain zum richtigen Service im Docker-Netzwerk
+1) Client → WireGuard → Host
+2) Host-Caddy lauscht auf 80/443, terminiert TLS
+3) Caddy routet auf `127.0.0.1:<PORT>` des jeweiligen Containers
 
-### Netzwerk
-Ein gemeinsames, externes Docker-Netzwerk (z. B. `web`) wird einmalig erstellt und von allen Stacks genutzt.
-Jeder Website-Stack hängt in diesem Netzwerk und hat einen eindeutigen Service-Namen.
+### Caddy-Routing (Host-Caddyfile)
+```
+holzwerk-meister.example.com {
+    reverse_proxy 127.0.0.1:8081
+}
+```
 
-### Caddy-Routing
-Beispiele (Caddyfile):
-- `kunde1.example.com -> reverse_proxy web_kunde1:80`
-- `kunde2.example.com -> reverse_proxy web_kunde2:80`
-
-### Wichtige Punkte
-- Website-Container brauchen **keine öffentlichen Ports**
-- Caddy und die Website-Container müssen im **gleichen Docker-Netzwerk** sein
-- Neue Website = neuer Stack + neue Route im Caddyfile
+### Verbindliche Docker-Regeln
+- Nur `docker run`, kein Compose für Single-Image-Projekte
+- Ports nur mit `127.0.0.1` – niemals `0.0.0.0`
+- Kein `--network host`, kein `--privileged`
+- Ressourcenlimits (`--cpus`, `--memory`) und Log-Rotation
+- Healthcheck für den Web-Service
+- `--restart unless-stopped`
+- Secrets nur über Env-Variablen / `.env`, nie hardcoded

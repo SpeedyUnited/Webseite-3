@@ -1,21 +1,3 @@
-version: '3.8'
-services:
-  web_holzwerk_meister:
-    image: ghcr.io/speedyunited/webseite-3:v0.1.0
-    ports:
-      - "8080:80"
-    depends_on:
-      - php
-    networks:
-      - web
-    restart: unless-stopped
-
-  php:
-    image: ghcr.io/speedyunited/webseite-2-php:latest
-    networks:
-      - web
-    restart: unless-stopped
-
-networks:
-  web:
-    driver: bridge
+# NICHT MEHR BENÖTIGT – Dieses Projekt nutzt docker run, kein Compose.
+# Siehe scripts/deploy.sh oder README.md.
+# Diese Datei kann gelöscht werden: rm docker-compose.yml

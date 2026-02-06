@@ -2,11 +2,15 @@
     email admin@example.com
 }
 
-# Beispiel-Routing (Domains bitte ersetzen)
-site1.example.com {
-    reverse_proxy web_site1:80
+# Host-Caddy routet auf die lokal gebundenen Container-Ports.
+# Jeder Container exponiert nur 127.0.0.1:<PORT>:80.
+# Domains und Ports bitte pro Projekt anpassen.
+
+holzwerk-meister.example.com {
+    reverse_proxy 127.0.0.1:8081
 }
 
-site2.example.com {
-    reverse_proxy web_site2:80
-}
+# Weitere Projekte:
+# kunde2.example.com {
+#     reverse_proxy 127.0.0.1:8082
+# }
